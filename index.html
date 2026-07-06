@@ -807,7 +807,7 @@
 
         function updateTopSummary() {
             const salesTotal = calculateSalesTotal();
-            const coopTotal = (coopData.adult * 2000) + (coopData.child * 1000);
+            const coopTotal = (coopData.adult * 2000) + (coopData.child * 1000) + ((coopData.toilet || 0) * 200);
     
             // 【修正】画面の文字からではなく、保存データ（boxData.amount）を基準に計算
             const boxTotal = Number(boxData.amount) || 0; 
