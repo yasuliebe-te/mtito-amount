@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mt_ITO避難小屋販売集計アプリ</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #16a085;
+            --danger-color: #c0392b;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding-bottom: 80px; /* Space for fixed bottom buttons */
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .nav-tabs {
+            display: flex;
+            background-color: #34495e;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 10px;
+            color: #bdc3c7;
+            border: none;
+            background: none;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .tab-btn.active {
+            color: white;
+            background-color: var(--accent-color);
+            border-bottom: 3px solid #fff;
+        }
+
+        .container {
+            padding: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: var(--primary-color);
+            border-left: 4px solid var(--accent-color);
+            padding-left: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 15px;
+        }
+
+        .date-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-toggle {
+            padding: 10px;
+            background-color: #ddd;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Summary Table styling */
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 15px;
+        }
+
+        .summary-item.total {
+            border-top: 2px solid var(--primary-color);
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 17px;
+            color: var(--danger-color);
+            margin-top: 5px;
+        }
+
+        /* Table design */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 8px 6px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        /* Buttons & Counter Controls */
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary { background-color: var(--accent-color); color: white; }
+        .btn-danger { background-color: var(--danger-color); color: white; }
+        .btn-secondary { background-color: #7f8c8d; color: white; }
+        .btn-sm { padding: 4px 8px; font-size: 12px; }
+
+        .counter-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-counter {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .btn-counter:active {
+            background-color: #eee;
+        }
+
+        .counter-val {
+            font-size: 16px;
+            font-weight: bold;
+            min-width: 25px;
+            text-align: center;
+        }
+
+        /* Floating sales bar */
+        .floating-sales-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(44, 62, 80, 0.95);
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+            z-index: 99;
+        }
+
+        .floating-sales-bar .total-text {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .floating-sales-bar .total-amount {
+            font-size: 20px;
+            color: #2ecc71;
+            font-weight: bold;
+        }
+
+        /* Actions block at bottom of TOP page */
+        .action-block {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .action-block .btn {
+            flex: 1;
+            padding: 12px;
+            font-size: 15px;
+        }
+
+        /* Responsive modifications */
+        @media(max-width: 360px) {
+            th, td { padding: 6px 4px; font-size: 12px; }
+            .btn-counter { width: 28px; height: 28px; font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 style="font-size: 18px;">Mt_ITO避難小屋_販売集計</h1>
+    </header>
+
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchPage('top')">TOP</button>
+        <button class="tab-btn" onclick="switchPage('sales-record')">販売記録</button>
+        <button class="tab-btn" onclick="switchPage('sales-detail')">詳細集計</button>
+        <button class="tab-btn" onclick="switchPage('sales-config')">商品登録</button>
+        <button class="tab-btn" onclick="switchPage('cooperation')">管理協力</button>
+        <button class="tab-btn" onclick="switchPage('box-calc')">料金箱</button>
+    </div>
+
+    <div class="container">
+        
+        <!-- ================= TOP PAGE ================= -->
+        <div id="page-top" class="page active">
+            <div class="card">
+                <h2>基本情報</h2>
+                <div class="form-group">
+                    <label>管理人名</label>
+                    <input type="text" id="manager-name" class="form-control" placeholder="無記名可">
+                </div>
+                <div class="form-group">
+                    <label>集計期間</label>
+                    <div class="date-row">
+                        <input type="date" id="period-start" class="form-control" style="flex:1;">
+                        <span>～</span>
+                        <input type="date" id="period-end" class="form-control" style="flex:1;">
+                        <button type="button" class="btn-toggle" onclick="stepDate(1)">＋</button>
+                        <button type="button" class="btn-toggle" onclick="stepDate(-1)">－</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>集計サマリー</h2>
+                <div class="summary-item">
+                    <span>１，商品販売金 合計額</span>
+                    <span id="sum-sales">￥0</span>
+                </div>
+                <div class="summary-item">
+                    <span>２，管理協力金 合計額</span>
+                    <span id="sum-coop">￥0</span>
+                </div>
+                <div class="summary-item">
+                    <span>３，料金箱集計金 合計額</span>
+                    <span id="sum-box">￥0</span>
+                </div>
+                <div class="summary-item total">
+                    <span>全タイプ 合計額</span>
+                    <span id="sum-all">￥0</span>
+                </div>
+            </div>
+
+            <div class="action-block">
+                <button class="btn btn-primary" onclick="exportData('txt')">集計完了 (TXT)</button>
+                <button class="btn btn-primary" style="background-color: #2980b9;" onclick="exportData('csv')">集計完了 (CSV)</button>
+                <button class="btn btn-danger" onclick="clearAllData()">集計クリア</button>
+            </div>
+        </div>
+
+        <!-- ================= 販売記録画面 ================= -->
+        <div id="page-sales-record" class="page">
+            <div class="card" style="padding: 10px 5px;">
+                <h2>販売入力</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="12%">順</th>
+                            <th>品名</th>
+                            <th width="22%" class="text-right">単価</th>
+                            <th width="35%" class="text-center">個数</th>
+                        </tr>
+                    </thead>
+                    <tbody id="record-list-body">
+                        <!-- Dynamic items -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="floating-sales-bar">
+                <div>
+                    <span class="total-text">現在の合計額:</span>
+                    <span class="total-amount" id="current-cart-total">￥0</span>
+                </div>
+                <button class="btn btn-primary" style="background-color: #2ecc71; font-size: 15px; padding: 10px 20px;" onclick="commitSales()">販売ボタン</button>
+            </div>
+        </div>
+
+        <!-- ================= 詳細集計画面 ================= -->
+        <div id="page-sales-detail" class="page">
+            <div class="card" style="padding: 10px 5px;">
+                <h2>商品別詳細集計</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>順</th>
+                            <th>品名</th>
+                            <th class="text-right">単価</th>
+                            <th class="text-center">売</th>
+                            <th class="text-center">返</th>
+                            <th class="text-right">販売額</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detail-list-body">
+                        <!-- Dynamic items -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ================= 商品登録画面 ================= -->
+        <div id="page-sales-config" class="page">
+            <div class="card">
+                <h2>新規商品追加</h2>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap;">
+                    <input type="number" id="add-sort" class="form-control" placeholder="並び順" style="width: 70px;">
+                    <input type="text" id="add-name" class="form-control" placeholder="品名" style="flex: 1; min-width: 120px;">
+                    <input type="number" id="add-price" class="form-control" placeholder="単価" style="width: 90px;">
+                    <button class="btn btn-primary" onclick="addProductItem()">追加</button>
+                </div>
+            </div>
+
+            <div class="card" style="padding: 10px 5px;">
+                <h2>登録マスター一覧</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="15%">並び</th>
+                            <th>品名</th>
+                            <th width="20%" class="text-right">単価</th>
+                            <th width="30%" class="text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="config-list-body">
+                        <!-- Dynamic items -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ================= 管理協力金画面 ================= -->
+        <div id="page-cooperation" class="page">
+            <div class="card">
+                <h2>管理協力金 入力</h2>
+                <div class="summary-item" style="align-items: center; padding: 15px 0;">
+                    <div>
+                        <div style="font-weight: bold;">一般（中学生以上）</div>
+                        <div style="font-size: 13px; color: #666;">単価: ￥2,000</div>
+                    </div>
+                    <div class="counter-group">
+                        <button class="btn-counter" onclick="changeCoopCount('adult', -1)">－</button>
+                        <span class="counter-val" id="coop-adult-count">0</span>
+                        <button class="btn-counter" onclick="changeCoopCount('adult', 1)">＋</button>
+                    </div>
+                    <span id="coop-adult-amount" style="font-weight: bold; width: 80px; text-align: right;">￥0</span>
+                </div>
+
+                <div class="summary-item" style="align-items: center; padding: 15px 0;">
+                    <div>
+                        <div style="font-weight: bold;">小学生以下</div>
+                        <div style="font-size: 13px; color: #666;">単価: ￥1,000</div>
+                    </div>
+                    <div class="counter-group">
+                        <button class="btn-counter" onclick="changeCoopCount('child', -1)">－</button>
+                        <span class="counter-val" id="coop-child-count">0</span>
+                        <button class="btn-counter" onclick="changeCoopCount('child', 1)">＋</button>
+                    </div>
+                    <span id="coop-child-amount" style="font-weight: bold; width: 80px; text-align: right;">￥0</span>
+                </div>
+
+                <div class="summary-item total" style="padding-top: 15px;">
+                    <span>合計金額</span>
+                    <span id="coop-total-amount">￥0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= 料金箱集計画面 ================= -->
+        <div id="page-box-calc" class="page">
+            <div class="card">
+                <h2>料金箱 計算入力</h2>
+                <div class="form-group">
+                    <label>名簿記載人数 (名)</label>
+                    <input type="number" id="box-people" class="form-control" inputmode="numeric" placeholder="半角数字を入力">
+                </div>
+                <div class="form-group">
+                    <label>内容金額 (円)</label>
+                    <input type="text" id="box-amount" class="form-control" inputmode="numeric" placeholder="半角数字を入力" onfocus="removeComma(this)" onblur="applyComma(this)">
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Default Master Items
+        const defaultProducts = [
+            { id: "1", sort: 10, name: "越冬ビール", price: 800 },
+            { id: "2", sort: 20, name: "新ビール", price: 500 },
+            { id: "3", sort: 30, name: "お茶_500ml", price: 400 },
+            { id: "4", sort: 40, name: "コーラ_250ml", price: 300 },
+            { id: "5", sort: 50, name: "サイダー_250ml", price: 300 },
+            { id: "6", sort: 60, name: "Tシャツ", price: 3000 },
+            { id: "7", sort: 70, name: "手ぬぐい", price: 1000 }
+        ];
+
+        // State variables
+        let products = JSON.parse(localStorage.getItem('hut_products')) || defaultProducts;
+        let cart = {}; // Temporary quantity per product ID during active selection
+        let statistics = JSON.parse(localStorage.getItem('hut_statistics')) || {}; // Accumulated sales/returns: {prodId: {sales: 0, returns: 0}}
+        let coopData = JSON.parse(localStorage.getItem('hut_coop')) || { adult: 0, child: 0 };
+        let boxData = JSON.parse(localStorage.getItem('hut_box')) || { people: "", amount: "" };
+        let metaData = JSON.parse(localStorage.getItem('hut_meta')) || { manager: "", start: "" };
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            initDates();
+            loadSavedMeta();
+            refreshAll();
+            
+            // Listen to input changes for continuous sync to top and storage
+            document.getElementById('manager-name').addEventListener('input', saveMeta);
+            document.getElementById('period-start').addEventListener('input', saveMeta);
+            document.getElementById('period-end').addEventListener('input', saveMeta);
+            
+            document.getElementById('box-people').addEventListener('input', saveBox);
+            document.getElementById('box-amount').addEventListener('input', saveBox);
+        });
+
+        function initDates() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('period-end').value = todayStr;
+            // Initialize cart items with 0
+            products.forEach(p => { if(!cart[p.id]) cart[p.id] = 0; });
+        }
+
+        function loadSavedMeta() {
+            document.getElementById('manager-name').value = metaData.manager || "";
+            if (metaData.start) document.getElementById('period-start').value = metaData.start;
+            document.getElementById('box-people').value = boxData.people || "";
+    
+            // 【修正】読み込み時に、保存されている金額にカンマを適用して表示
+            const amtInput = document.getElementById('box-amount');
+            amtInput.value = boxData.amount ? Number(boxData.amount).toLocaleString() : "";
+        }
+
+        function saveMeta() {
+            metaData.manager = document.getElementById('manager-name').value;
+            metaData.start = document.getElementById('period-start').value;
+            localStorage.setItem('hut_meta', JSON.stringify(metaData));
+        }
+
+        function saveBox() {
+            boxData.people = document.getElementById('box-people').value;
+    
+            // 【修正】画面からカンマを除去した「純粋な数字」を取り出して保存
+            const rawAmount = document.getElementById('box-amount').value.replace(/,/g, '');
+            boxData.amount = rawAmount;
+    
+            localStorage.setItem('hut_box', JSON.stringify(boxData));
+            updateTopSummary();
+        }
+
+        function stepDate(days) {
+            const dateInput = document.getElementById('period-end');
+            if(!dateInput.value) return;
+            let current = new Date(dateInput.value);
+            current.setDate(current.getDate() + days);
+            dateInput.value = current.toISOString().split('T')[0];
+            saveMeta();
+        }
+
+        function switchPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(`page-${pageId}`).classList.remove('active'); // security fallback
+            document.getElementById(`page-${pageId}`).classList.add('active');
+            
+            // Find appropriate tab button to highlight
+            const tabs = document.querySelectorAll('.tab-btn');
+            tabs.forEach(btn => {
+                if(btn.getAttribute('onclick').includes(pageId)) btn.classList.add('active');
+            });
+
+            // Specific UI handling logic per page trigger
+            if(pageId === 'sales-record') {
+                document.body.style.paddingBottom = "80px";
+            } else {
+                document.body.style.paddingBottom = "20px";
+            }
+        }
+
+        function refreshAll() {
+            sortProducts();
+            renderSalesRecordList();
+            renderSalesDetailList();
+            renderConfigList();
+            renderCoopUI();
+            updateTopSummary();
+        }
+
+        function sortProducts() {
+            products.sort((a, b) => Number(a.sort) - Number(b.sort));
+        }
+
+        // --- Render Lists ---
+        function renderSalesRecordList() {
+            const tbody = document.getElementById('record-list-body');
+            tbody.innerHTML = '';
+            products.forEach(p => {
+                if(cart[p.id] === undefined) cart[p.id] = 0;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${p.sort}</td>
+                    <td style="font-weight:500;">${p.name}</td>
+                    <td class="text-right">￥${p.price.toLocaleString()}</td>
+                    <td class="text-center">
+                        <div class="counter-group">
+                            <button class="btn-counter" onclick="changeCartCount('${p.id}', -1)">－</button>
+                            <span class="counter-val" id="cart-val-${p.id}">${cart[p.id]}</span>
+                            <button class="btn-counter" onclick="changeCartCount('${p.id}', 1)">＋</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            updateCartTotal();
+        }
+
+        function changeCartCount(id, delta) {
+            cart[id] = (cart[id] || 0) + delta;
+            document.getElementById(`cart-val-${id}`).innerText = cart[id];
+            updateCartTotal();
+        }
+
+        function updateCartTotal() {
+            let total = 0;
+            products.forEach(p => {
+                total += (cart[p.id] || 0) * p.price;
+            });
+            document.getElementById('current-cart-total').innerText = `￥${total.toLocaleString()}`;
+        }
+
+        function commitSales() {
+            let hasChanges = false;
+            products.forEach(p => {
+                const qty = cart[p.id] || 0;
+                if(qty !== 0) {
+                    if(!statistics[p.id]) statistics[p.id] = { sales: 0, returns: 0 };
+                    if(qty > 0) {
+                        statistics[p.id].sales += qty;
+                    } else {
+                        statistics[p.id].returns += Math.abs(qty); // keeps returns positive index
+                    }
+                    hasChanges = true;
+                }
+                cart[p.id] = 0; // Reset individual cart
+            });
+
+            if(hasChanges) {
+                localStorage.setItem('hut_statistics', JSON.stringify(statistics));
+                refreshAll();
+                alert('販売記録を登録・反映しました。');
+            } else {
+                alert('個数がすべて0です。数値を入力してからボタンを押してください。');
+            }
+        }
+
+        function renderSalesDetailList() {
+            const tbody = document.getElementById('detail-list-body');
+            tbody.innerHTML = '';
+            let totalSalesAmount = 0;
+
+            products.forEach(p => {
+                const stat = statistics[p.id] || { sales: 0, returns: 0 };
+                const netQty = stat.sales - stat.returns;
+                const rowAmount = netQty * p.price;
+                totalSalesAmount += rowAmount;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${p.sort}</td>
+                    <td>${p.name}</td>
+                    <td class="text-right">￥${p.price.toLocaleString()}</td>
+                    <td class="text-center">${stat.sales}</td>
+                    <td class="text-center" style="${stat.returns > 0 ? 'color:red;' : ''}">${stat.returns > 0 ? '-' + stat.returns : 0}</td>
+                    <td class="text-right" style="${rowAmount < 0 ? 'color:red;' : ''}">￥${rowAmount.toLocaleString()}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            const footerTr = document.createElement('tr');
+            footerTr.style.fontWeight = 'bold';
+            footerTr.style.backgroundColor = '#f9f9f9';
+            footerTr.innerHTML = `
+                <td colspan="5" class="text-right">合計額</td>
+                <td class="text-right" style="color:var(--danger-color); font-size:15px;">￥${totalSalesAmount.toLocaleString()}</td>
+            `;
+            tbody.appendChild(footerTr);
+        }
+
+        function renderConfigList() {
+            const tbody = document.getElementById('config-list-body');
+            tbody.innerHTML = '';
+            products.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="number" value="${p.sort}" class="form-control btn-sm" style="width:55px; padding:4px;" onchange="updateProductField('${p.id}', 'sort', this.value)"></td>
+                    <td><input type="text" value="${p.name}" class="form-control btn-sm" style="padding:4px;" onchange="updateProductField('${p.id}', 'name', this.value)"></td>
+                    <td><input type="number" value="${p.price}" class="form-control btn-sm text-right" style="width:75px; padding:4px;" onchange="updateProductField('${p.id}', 'price', this.value)"></td>
+                    <td class="text-center">
+                        <button class="btn btn-danger btn-sm" onclick="deleteProductItem('${p.id}')">削除</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function addProductItem() {
+            const sortInput = document.getElementById('add-sort');
+            const nameInput = document.getElementById('add-name');
+            const priceInput = document.getElementById('add-price');
+
+            if(!nameInput.value || !priceInput.value) {
+                alert('品名と単価を入力してください。');
+                return;
+            }
+
+            const newItem = {
+                id: Date.now().toString(),
+                sort: sortInput.value ? Number(sortInput.value) : 100,
+                name: nameInput.value,
+                price: Number(priceInput.value)
+            };
+
+            products.push(newItem);
+            localStorage.setItem('hut_products', JSON.stringify(products));
+            
+            // reset inputs
+            nameInput.value = '';
+            priceInput.value = '';
+            sortInput.value = '';
+
+            refreshAll();
+        }
+
+        function updateProductField(id, field, value) {
+            const prod = products.find(p => p.id === id);
+            if(prod) {
+                if(field === 'sort' || field === 'price') {
+                    prod[field] = Number(value);
+                } else {
+                    prod[field] = value;
+                }
+                localStorage.setItem('hut_products', JSON.stringify(products));
+                // We delay full sort refresh slightly so input doesn't jump immediately away while typing
+                setTimeout(refreshAll, 1200); 
+            }
+        }
+
+        function deleteProductItem(id) {
+            if(confirm('この商品をマスターから削除しますか？(この商品に紐づく販売実績額も集計に影響を受ける可能性があります)')) {
+                products = products.filter(p => p.id !== id);
+                localStorage.setItem('hut_products', JSON.stringify(products));
+                if(statistics[id]) delete statistics[id];
+                localStorage.setItem('hut_statistics', JSON.stringify(statistics));
+                refreshAll();
+            }
+        }
+
+        // --- Management Cooperation ---
+        function changeCoopCount(type, delta) {
+            coopData[type] = Math.max(0, coopData[type] + delta);
+            localStorage.setItem('hut_coop', JSON.stringify(coopData));
+            renderCoopUI();
+            updateTopSummary();
+        }
+
+        function renderCoopUI() {
+            const adultPrice = 2000;
+            const childPrice = 1000;
+            const adultAmt = coopData.adult * adultPrice;
+            const childAmt = coopData.child * childPrice;
+            const total = adultAmt + childAmt;
+
+            document.getElementById('coop-adult-count').innerText = coopData.adult;
+            document.getElementById('coop-child-count').innerText = coopData.child;
+            
+            document.getElementById('coop-adult-amount').innerText = `￥${adultAmt.toLocaleString()}`;
+            document.getElementById('coop-child-amount').innerText = `￥${childAmt.toLocaleString()}`;
+            document.getElementById('coop-total-amount').innerText = `￥${total.toLocaleString()}`;
+        }
+
+        // --- TOP Dynamic Synchronization Summary Calculation ---
+        function calculateSalesTotal() {
+            let total = 0;
+            products.forEach(p => {
+                const stat = statistics[p.id] || { sales: 0, returns: 0 };
+                total += (stat.sales - stat.returns) * p.price;
+            });
+            return total;
+        }
+
+        function updateTopSummary() {
+            const salesTotal = calculateSalesTotal();
+            const coopTotal = (coopData.adult * 2000) + (coopData.child * 1000);
+    
+            // 【修正】画面の文字からではなく、保存データ（boxData.amount）を基準に計算
+            const boxTotal = Number(boxData.amount) || 0; 
+            const grandTotal = salesTotal + coopTotal + boxTotal;
+
+            document.getElementById('sum-sales').innerText = `￥${salesTotal.toLocaleString()}`;
+            document.getElementById('sum-coop').innerText = `￥${coopTotal.toLocaleString()}`;
+            document.getElementById('sum-box').innerText = `￥${boxTotal.toLocaleString()}`;
+            document.getElementById('sum-all').innerText = `￥${grandTotal.toLocaleString()}`;
+        }
+
+        // --- Clear Feature ---
+        function clearAllData() {
+            if(confirm('安全警告: 全ての売上個数・金額、管理協力金、料金箱入力をクリアして初期化しますか？ (登録した商品マスターは消えません)')) {
+                statistics = {};
+                coopData = { adult: 0, child: 0 };
+                boxData = { people: "", amount: "" };
+                
+                localStorage.removeItem('hut_statistics');
+                localStorage.setItem('hut_coop', JSON.stringify(coopData));
+                localStorage.setItem('hut_box', JSON.stringify(boxData));
+                
+                // reset inputs
+                document.getElementById('box-people').value = "";
+                document.getElementById('box-amount').value = "";
+                
+                // Reset end date back to today
+                initDates();
+                saveMeta();
+                
+                // reset current cart selection
+                Object.keys(cart).forEach(k => cart[k] = 0);
+
+                refreshAll();
+                alert('すべての集計データをクリアしました。至の日付を本日に戻しました。');
+            }
+        }
+
+        // --- Export Feature ---
+        function generateOutputText() {
+            const manager = document.getElementById('manager-name').value || "未記入";
+            const startStr = document.getElementById('period-start').value || "未設定";
+            const endStr = document.getElementById('period-end').value || "未設定";
+            
+            const salesTotal = calculateSalesTotal();
+            const coopTotal = (coopData.adult * 2000) + (coopData.child * 1000);
+            const boxTotal = Number(document.getElementById('box-amount').value) || 0;
+            const grandTotal = salesTotal + coopTotal + boxTotal;
+
+            let txt = `====================================\n`;
+            txt += `          山小屋 販売集計レポート          \n`;
+            txt += `====================================\n`;
+            txt += `■ 基本情報\n`;
+            txt += `管理人名 : ${manager}\n`;
+            txt += `集計期間 : ${startStr} ～ ${endStr}\n\n`;
+            
+            txt += `■ 総括サマリー\n`;
+            txt += `１．商品販売金 合計額 : ￥${salesTotal.toLocaleString()}\n`;
+            txt += `２．管理協力金 合計額 : ￥${coopTotal.toLocaleString()}\n`;
+            txt += `３．料金箱集計金 合計額 : ￥${boxTotal.toLocaleString()}\n`;
+            txt += `------------------------------------\n`;
+            txt += `全タイプ 総合計額     : ￥${grandTotal.toLocaleString()}\n\n`;
+
+            txt += `■ １，商品販売 詳細内訳\n`;
+            txt += `並び順 | 品名 | 単価 | 販売数 | 返品数 | 販売額\n`;
+            products.forEach(p => {
+                const stat = statistics[p.id] || { sales: 0, returns: 0 };
+                const netQty = stat.sales - stat.returns;
+                const rowAmount = netQty * p.price;
+                txt += `${p.sort} | ${p.name} | ￥${p.price} | ${stat.sales} | ${stat.returns} | ￥${rowAmount.toLocaleString()}\n`;
+            });
+            txt += `商品販売合計額: ￥${salesTotal.toLocaleString()}\n\n`;
+
+            txt += `■ ２，管理協力金 内訳\n`;
+            txt += `・一般（中学生以上）: ${coopData.adult} 名 (￥${(coopData.adult * 2000).toLocaleString()})\n`;
+            txt += `・小学生以下        : ${coopData.child} 名 (￥${(coopData.child * 1000).toLocaleString()})\n`;
+            txt += `管理協力金合計額: ￥${coopTotal.toLocaleString()}\n\n`;
+
+            txt += `■ ３，料金箱集計 内訳\n`;
+            txt += `・名簿記載人数 : ${boxData.people || 0} 名\n`;
+            txt += `・内容金額     : ￥${boxTotal.toLocaleString()}\n`;
+            txt += `====================================\n`;
+            return txt;
+        }
+
+        function generateOutputCSV() {
+            const manager = document.getElementById('manager-name').value || "未記入";
+            const startStr = document.getElementById('period-start').value || "未設定";
+            const endStr = document.getElementById('period-end').value || "未設定";
+            
+            const salesTotal = calculateSalesTotal();
+            const coopTotal = (coopData.adult * 2000) + (coopData.child * 1000);
+            const boxTotal = Number(document.getElementById('box-amount').value) || 0;
+            const grandTotal = salesTotal + coopTotal + boxTotal;
+
+            let csv = "\uFEFF"; // UTF-8 BOM for Excel stability
+            csv += `項目,詳細1,詳細2,詳細3,金額/人数\n`;
+            csv += `レポート名,山小屋販売集計レポート,,,\n`;
+            csv += `管理人名,${manager},,,\n`;
+            csv += `集計期間自,${startStr},,,\n`;
+            csv += `集計期間至,${endStr},,,\n`;
+            csv += `,,,,\n`;
+            csv += `【サマリー】,商品販売金合計額,,,${salesTotal}\n`;
+            csv += `【サマリー】,管理協力金合計額,,,${coopTotal}\n`;
+            csv += `【サマリー】,料金箱集計金合計額,,,${boxTotal}\n`;
+            csv += `【サマリー】,全タイプ総合計額,,,${grandTotal}\n`;
+            csv += `,,,,\n`;
+            csv += `【1.商品販売内訳】,並び順,品名,単価,販売数,返品数,販売額\n`;
+            products.forEach(p => {
+                const stat = statistics[p.id] || { sales: 0, returns: 0 };
+                const netQty = stat.sales - stat.returns;
+                const rowAmount = netQty * p.price;
+                csv += `,${p.sort},${p.name},${p.price},${stat.sales},${stat.returns},${rowAmount}\n`;
+            });
+            csv += `,,,,\n`;
+            csv += `【2.管理協力金内訳】,区分,単価,人数,金額,\n`;
+            csv += `,一般（中学生以上）,2000,${coopData.adult},${coopData.adult * 2000},\n`;
+            csv += `,小学生以下,1000,${coopData.child},${coopData.child * 1000},\n`;
+            csv += `,,,,\n`;
+            csv += `【3.料金箱内訳】,名簿記載人数,${boxData.people || 0},名,,\n`;
+            csv += `,料金箱金額,${boxTotal},円,,\n`;
+            
+            return csv;
+        }
+
+        function exportData(format) {
+            const endStr = document.getElementById('period-end').value || "report";
+            let content = "";
+            let filename = `yamagoya-shukei-${endStr}`;
+            let mimeType = "";
+
+            if(format === 'txt') {
+                content = generateOutputText();
+                filename += ".txt";
+                mimeType = "text/plain;charset=utf-8";
+            } else if (format === 'csv') {
+                content = generateOutputCSV();
+                filename += ".csv";
+                mimeType = "text/csv;charset=utf-8";
+            }
+
+            const blob = new Blob([content], { type: mimeType });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+        }
+
+        // ーーー【ここから新規追加機能】フォーカスが外れたらカンマを付け、フォーカスされたら外す処理 ーーー
+        function applyComma(input) {
+            const num = input.value.replace(/,/g, '');
+            if (!isNaN(num) && num !== "") {
+                input.value = Number(num).toLocaleString();
+            }
+        }
+
+        function removeComma(input) {
+            input.value = input.value.replace(/,/g, '');
+        }
+    </script>
+</body>
+</html>
