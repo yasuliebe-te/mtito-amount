@@ -445,6 +445,19 @@
                     <span id="coop-child-amount" style="font-weight: bold; width: 80px; text-align: right;">￥0</span>
                 </div>
 
+                <div class="summary-item" style="align-items: center; padding: 15px 0;">
+                    <div>
+                        <div style="font-weight: bold;">トイレ利用</div>
+                        <div style="font-size: 13px; color: #666;">単価: ￥200</div>
+                    </div>
+                    <div class="counter-group">
+                        <button class="btn-counter" onclick="changeCoopCount('toilet', -1)">－</button>
+                        <span class="counter-val" id="coop-toilet-count">0</span>
+                        <button class="btn-counter" onclick="changeCoopCount('toilet', 1)">＋</button>
+                    </div>
+                    <span id="coop-toilet-amount" style="font-weight: bold; width: 80px; text-align: right;">￥0</span>
+                </div>
+
                 <div class="summary-item total" style="padding-top: 15px;">
                     <span>合計金額</span>
                     <span id="coop-total-amount">￥0</span>
@@ -470,22 +483,29 @@
     </div>
 
     <script>
-        // Default Master Items
+        // ① 商品データ初期値 (全14品)
         const defaultProducts = [
-            { id: "1", sort: 10, name: "越冬ビール", price: 800 },
-            { id: "2", sort: 20, name: "新ビール", price: 500 },
-            { id: "3", sort: 30, name: "お茶_500ml", price: 400 },
-            { id: "4", sort: 40, name: "コーラ_250ml", price: 300 },
-            { id: "5", sort: 50, name: "サイダー_250ml", price: 300 },
-            { id: "6", sort: 60, name: "Tシャツ", price: 3000 },
-            { id: "7", sort: 70, name: "手ぬぐい", price: 1000 }
+            { id: "1", sort: 10, name: "ビール", price: 800 },
+            { id: "2", sort: 20, name: "越冬ビール", price: 500 },
+            { id: "3", sort: 30, name: "缶コーラ", price: 300 },
+            { id: "4", sort: 40, name: "サイダー", price: 300 },
+            { id: "5", sort: 50, name: "レモンスカッシュ", price: 400 },
+            { id: "6", sort: 60, name: "水_2L", price: 300 },
+            { id: "7", sort: 70, name: "記念バッチ", price: 1000 },
+            { id: "8", sort: 80, name: "木製バッチ", price: 1000 },
+            { id: "9", sort: 90, name: "木札", price: 1000 },
+            { id: "10", sort: 100, name: "手ぬぐい", price: 1000 },
+            { id: "11", sort: 110, name: "Ｔシャツ", price: 3000 },
+            { id: "12", sort: 120, name: "月山ワイン", price: 2500 },
+            { id: "13", sort: 130, name: "貸しバッテリー", price: 100 },
+            { id: "14", sort: 140, name: "貸し毛布", price: 500 }
         ];
 
         // State variables
         let products = JSON.parse(localStorage.getItem('hut_products')) || defaultProducts;
         let cart = {}; // Temporary quantity per product ID during active selection
         let statistics = JSON.parse(localStorage.getItem('hut_statistics')) || {}; // Accumulated sales/returns: {prodId: {sales: 0, returns: 0}}
-        let coopData = JSON.parse(localStorage.getItem('hut_coop')) || { adult: 0, child: 0 };
+        let coopData = JSON.parse(localStorage.getItem('hut_coop')) || { adult: 0, child: 0, toilet: 0 };
         let boxData = JSON.parse(localStorage.getItem('hut_box')) || { people: "", amount: "" };
         let metaData = JSON.parse(localStorage.getItem('hut_meta')) || { manager: "", start: "" };
 
@@ -748,6 +768,7 @@
 
         // --- Management Cooperation ---
         function changeCoopCount(type, delta) {
+            if (coopData[type] === undefined) coopData[type] = 0; // 安全対策
             coopData[type] = Math.max(0, coopData[type] + delta);
             localStorage.setItem('hut_coop', JSON.stringify(coopData));
             renderCoopUI();
@@ -757,15 +778,20 @@
         function renderCoopUI() {
             const adultPrice = 2000;
             const childPrice = 1000;
-            const adultAmt = coopData.adult * adultPrice;
-            const childAmt = coopData.child * childPrice;
-            const total = adultAmt + childAmt;
+            const toiletPrice = 200; // トイレ利用の単価
 
-            document.getElementById('coop-adult-count').innerText = coopData.adult;
-            document.getElementById('coop-child-count').innerText = coopData.child;
+            const adultAmt = (coopData.adult || 0) * adultPrice;
+            const childAmt = (coopData.child || 0) * childPrice;
+            const toiletAmt = (coopData.toilet || 0) * toiletPrice; // トイレ利用の金額計算
+            const total = adultAmt + childAmt + toiletAmt; // トイレ利用も合計に加算
+
+            document.getElementById('coop-adult-count').innerText = coopData.adult || 0;
+            document.getElementById('coop-child-count').innerText = coopData.child || 0;
+            document.getElementById('coop-toilet-count').innerText = coopData.toilet || 0; // トイレ個数を表示
             
             document.getElementById('coop-adult-amount').innerText = `￥${adultAmt.toLocaleString()}`;
             document.getElementById('coop-child-amount').innerText = `￥${childAmt.toLocaleString()}`;
+            document.getElementById('coop-toilet-amount').innerText = `￥${toiletAmt.toLocaleString()}`; // トイレ金額を表示
             document.getElementById('coop-total-amount').innerText = `￥${total.toLocaleString()}`;
         }
 
@@ -827,12 +853,13 @@
             const endStr = document.getElementById('period-end').value || "未設定";
             
             const salesTotal = calculateSalesTotal();
-            const coopTotal = (coopData.adult * 2000) + (coopData.child * 1000);
+            // 【修正】トイレ利用分（単価200円）を計算に加算
+            const coopTotal = (coopData.adult * 2000) + (coopData.child * 1000) + ((coopData.toilet || 0) * 200);
             const boxTotal = Number(document.getElementById('box-amount').value) || 0;
             const grandTotal = salesTotal + coopTotal + boxTotal;
 
             let txt = `====================================\n`;
-            txt += `          山小屋 販売集計レポート          \n`;
+            txt += `         山小屋 販売集計レポート          \n`;
             txt += `====================================\n`;
             txt += `■ 基本情報\n`;
             txt += `管理人名 : ${manager}\n`;
@@ -855,9 +882,11 @@
             });
             txt += `商品販売合計額: ￥${salesTotal.toLocaleString()}\n\n`;
 
-            txt += `■ ２，管理協力金 内訳\n`;
+            txt += `■ ２，管理協力金・施設利用 内訳\n`;
             txt += `・一般（中学生以上）: ${coopData.adult} 名 (￥${(coopData.adult * 2000).toLocaleString()})\n`;
             txt += `・小学生以下        : ${coopData.child} 名 (￥${(coopData.child * 1000).toLocaleString()})\n`;
+            // 【修正】テキストにトイレ利用の内訳行を追加
+            txt += `・トイレ利用        : ${coopData.toilet || 0} 回 (￥${((coopData.toilet || 0) * 200).toLocaleString()})\n`;
             txt += `管理協力金合計額: ￥${coopTotal.toLocaleString()}\n\n`;
 
             txt += `■ ３，料金箱集計 内訳\n`;
@@ -873,7 +902,8 @@
             const endStr = document.getElementById('period-end').value || "未設定";
             
             const salesTotal = calculateSalesTotal();
-            const coopTotal = (coopData.adult * 2000) + (coopData.child * 1000);
+            // 【修正】トイレ利用分（単価200円）を計算に加算
+            const coopTotal = (coopData.adult * 2000) + (coopData.child * 1000) + ((coopData.toilet || 0) * 200);
             const boxTotal = Number(document.getElementById('box-amount').value) || 0;
             const grandTotal = salesTotal + coopTotal + boxTotal;
 
@@ -897,9 +927,11 @@
                 csv += `,${p.sort},${p.name},${p.price},${stat.sales},${stat.returns},${rowAmount}\n`;
             });
             csv += `,,,,\n`;
-            csv += `【2.管理協力金内訳】,区分,単価,人数,金額,\n`;
+            csv += `【2.管理協力金・施設利用内訳】,区分,単価,人数/回数,金額,\n`;
             csv += `,一般（中学生以上）,2000,${coopData.adult},${coopData.adult * 2000},\n`;
             csv += `,小学生以下,1000,${coopData.child},${coopData.child * 1000},\n`;
+            // 【修正】CSVにトイレ利用の行を追加
+            csv += `,トイレ利用,200,${coopData.toilet || 0},${(coopData.toilet || 0) * 200},\n`;
             csv += `,,,,\n`;
             csv += `【3.料金箱内訳】,名簿記載人数,${boxData.people || 0},名,,\n`;
             csv += `,料金箱金額,${boxTotal},円,,\n`;

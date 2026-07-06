@@ -1,7 +1,9 @@
-const CACHE_NAME = 'yamagoya-cache-v1';
+const CACHE_NAME = 'mt-ito-cache-v3';
 const ASSETS = [
   'index.html',
   'manifest.json',
+  'icon-192.png',
+  'icon-512.png',
   './',
   'index.html?utm_source=homescreen'
 ];
@@ -35,7 +37,6 @@ self.addEventListener('fetch', (e) => {
         return cachedResponse;
       }
       return fetch(e.request).catch(() => {
-        // Fallback safely if completely offline and trying to fetch non-cached items
         if (e.request.mode === 'navigate') {
           return caches.match('index.html');
         }
