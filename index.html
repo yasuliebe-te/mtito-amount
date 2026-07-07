@@ -853,9 +853,9 @@
             const endStr = document.getElementById('period-end').value || "未設定";
             
             const salesTotal = calculateSalesTotal();
-            // 【修正】トイレ利用分（単価200円）を計算に加算
             const coopTotal = (coopData.adult * 2000) + (coopData.child * 1000) + ((coopData.toilet || 0) * 200);
-            const boxTotal = Number(document.getElementById('box-amount').value) || 0;
+            // 【修正】カンマ対策のため画面からではなく保存データ（boxData.amount）を基準に読み込む
+            const boxTotal = Number(boxData.amount) || 0;
             const grandTotal = salesTotal + coopTotal + boxTotal;
 
             let txt = `====================================\n`;
@@ -885,7 +885,6 @@
             txt += `■ ２，管理協力金・施設利用 内訳\n`;
             txt += `・一般（中学生以上）: ${coopData.adult} 名 (￥${(coopData.adult * 2000).toLocaleString()})\n`;
             txt += `・小学生以下        : ${coopData.child} 名 (￥${(coopData.child * 1000).toLocaleString()})\n`;
-            // 【修正】テキストにトイレ利用の内訳行を追加
             txt += `・トイレ利用        : ${coopData.toilet || 0} 回 (￥${((coopData.toilet || 0) * 200).toLocaleString()})\n`;
             txt += `管理協力金合計額: ￥${coopTotal.toLocaleString()}\n\n`;
 
@@ -902,9 +901,9 @@
             const endStr = document.getElementById('period-end').value || "未設定";
             
             const salesTotal = calculateSalesTotal();
-            // 【修正】トイレ利用分（単価200円）を計算に加算
             const coopTotal = (coopData.adult * 2000) + (coopData.child * 1000) + ((coopData.toilet || 0) * 200);
-            const boxTotal = Number(document.getElementById('box-amount').value) || 0;
+            // 【修正】カンマ対策のため画面からではなく保存データ（boxData.amount）を基準に読み込む
+            const boxTotal = Number(boxData.amount) || 0;
             const grandTotal = salesTotal + coopTotal + boxTotal;
 
             let csv = "\uFEFF"; // UTF-8 BOM for Excel stability
@@ -930,7 +929,6 @@
             csv += `【2.管理協力金・施設利用内訳】,区分,単価,人数/回数,金額,\n`;
             csv += `,一般（中学生以上）,2000,${coopData.adult},${coopData.adult * 2000},\n`;
             csv += `,小学生以下,1000,${coopData.child},${coopData.child * 1000},\n`;
-            // 【修正】CSVにトイレ利用の行を追加
             csv += `,トイレ利用,200,${coopData.toilet || 0},${(coopData.toilet || 0) * 200},\n`;
             csv += `,,,,\n`;
             csv += `【3.料金箱内訳】,名簿記載人数,${boxData.people || 0},名,,\n`;
