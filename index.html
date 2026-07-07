@@ -333,6 +333,16 @@
                 <button class="btn btn-primary" style="background-color: #2980b9;" onclick="exportData('csv')">集計完了 (CSV)</button>
                 <button class="btn btn-danger" onclick="clearAllData()">集計クリア</button>
             </div>
+
+            <div style="margin-top: 30px; padding: 0 10px; text-align: center;">
+                <button onclick="clearAllApplicationData()" style="background-color: #dc3545; color: white; border: none; padding: 12px 20px; font-size: 14px; border-radius: 6px; width: 100%; max-width: 300px; font-weight: bold; cursor: pointer;">
+                    アプリのデータを初期化する
+                </button>
+                <p style="font-size: 11px; color: #666; margin-top: 5px; line-height: 1.5;">
+                    ※追加した商品や入力中の売上数がすべて消え、初期状態に戻ります。<br>
+                    （新商品への切り替えなど、アプリそのものを更新するときに使います）
+                </p>
+            </div>
         </div>
 
         <!-- ================= 販売記録画面 ================= -->
@@ -490,18 +500,19 @@
             { id: "3", sort: 30, name: "缶コーラ", price: 300 },
             { id: "4", sort: 40, name: "サイダー", price: 300 },
             { id: "5", sort: 50, name: "レモンスカッシュ", price: 400 },
-            { id: "6", sort: 60, name: "水_2L", price: 300 },
-            { id: "7", sort: 70, name: "記念バッチ", price: 1000 },
-            { id: "8", sort: 80, name: "木製バッチ", price: 1000 },
-            { id: "9", sort: 90, name: "木札", price: 1000 },
-            { id: "10", sort: 100, name: "2025手ぬぐい", price: 1000 },
-            { id: "11", sort: 101, name: "2026手ぬぐい", price: 1000 },
-            { id: "12", sort: 111, name: "2024Ｔシャツ", price: 3000 },
-            { id: "13", sort: 112, name: "2025Ｔシャツ", price: 3000 },
-            { id: "14", sort: 113, name: "2026Ｔシャツ", price: 3000 },
-            { id: "15", sort: 120, name: "月山ワイン", price: 2500 },
-            { id: "16", sort: 130, name: "貸しバッテリー", price: 100 },
-            { id: "17", sort: 140, name: "貸し毛布", price: 500 }
+            { id: "6", sort: 60, name: "お茶", price: 400 },
+            { id: "7", sort: 70, name: "水_2L", price: 300 },
+            { id: "8", sort: 80, name: "記念バッチ", price: 1000 },
+            { id: "9", sort: 90, name: "木製バッチ", price: 1000 },
+            { id: "10", sort: 100, name: "木札", price: 1000 },
+            { id: "11", sort: 110, name: "2025手ぬぐい", price: 1000 },
+            { id: "12", sort: 111, name: "2026手ぬぐい", price: 1000 },
+            { id: "13", sort: 121, name: "2024Ｔシャツ", price: 3000 },
+            { id: "14", sort: 122, name: "2025Ｔシャツ", price: 3000 },
+            { id: "15", sort: 123, name: "2026Ｔシャツ", price: 3000 },
+            { id: "16", sort: 130, name: "月山ワイン", price: 2500 },
+            { id: "17", sort: 140, name: "貸しバッテリー", price: 100 },
+            { id: "18", sort: 150, name: "貸し毛布", price: 500 }
         ];
 
         // State variables
@@ -976,6 +987,25 @@
 
         function removeComma(input) {
             input.value = input.value.replace(/,/g, '');
+        }
+
+        // アプリの全データを初期化して17品の初期状態に戻す関数
+        function clearAllApplicationData() {
+            // 利用者に最終確認のポップアップを出す
+            const confirmFirst = confirm("スマホに保存されている売上データや、追加した商品がすべて削除されます。本当によろしいですか？");
+    
+            if (confirmFirst) {
+                const confirmSecond = confirm("本当に初期化します。よろしいですね？（この操作は取り消せません）");
+        
+                if (confirmSecond) {
+                     // 1. スマホの保存庫（LocalStorage）を完全に空っぽにする
+                     localStorage.clear();
+            
+                     // 2. 画面を自動的に再読み込み（リフレッシュ）する
+                     alert("データを初期化しました。アプリを最新の状態に更新します。");
+                     window.location.reload();
+                }
+            }
         }
     </script>
 </body>
