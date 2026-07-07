@@ -448,7 +448,7 @@
                 <div class="summary-item" style="align-items: center; padding: 15px 0;">
                     <div>
                         <div style="font-weight: bold;">トイレ利用</div>
-                        <div style="font-size: 13px; color: #666;">単価: ￥200</div>
+                        <div style="font-size: 13px; color: #666;">単価: ￥100</div>
                     </div>
                     <div class="counter-group">
                         <button class="btn-counter" onclick="changeCoopCount('toilet', -1)">－</button>
@@ -778,7 +778,7 @@
         function renderCoopUI() {
             const adultPrice = 2000;
             const childPrice = 1000;
-            const toiletPrice = 200; // トイレ利用の単価
+            const toiletPrice = 100; // トイレ利用の単価
 
             const adultAmt = (coopData.adult || 0) * adultPrice;
             const childAmt = (coopData.child || 0) * childPrice;
@@ -807,7 +807,7 @@
 
         function updateTopSummary() {
             const salesTotal = calculateSalesTotal();
-            const coopTotal = (coopData.adult * 2000) + (coopData.child * 1000) + ((coopData.toilet || 0) * 200);
+            const coopTotal = (coopData.adult * 2000) + (coopData.child * 1000) + ((coopData.toilet || 0) * 100);
     
             // 【修正】画面の文字からではなく、保存データ（boxData.amount）を基準に計算
             const boxTotal = Number(boxData.amount) || 0; 
@@ -853,7 +853,7 @@
             const endStr = document.getElementById('period-end').value || "未設定";
             
             const salesTotal = calculateSalesTotal();
-            const coopTotal = (coopData.adult * 2000) + (coopData.child * 1000) + ((coopData.toilet || 0) * 200);
+            const coopTotal = (coopData.adult * 2000) + (coopData.child * 1000) + ((coopData.toilet || 0) * 100);
             // 【修正】カンマ対策のため画面からではなく保存データ（boxData.amount）を基準に読み込む
             const boxTotal = Number(boxData.amount) || 0;
             const grandTotal = salesTotal + coopTotal + boxTotal;
@@ -885,7 +885,7 @@
             txt += `■ ２，管理協力金・施設利用 内訳\n`;
             txt += `・一般（中学生以上）: ${coopData.adult} 名 (￥${(coopData.adult * 2000).toLocaleString()})\n`;
             txt += `・小学生以下        : ${coopData.child} 名 (￥${(coopData.child * 1000).toLocaleString()})\n`;
-            txt += `・トイレ利用        : ${coopData.toilet || 0} 回 (￥${((coopData.toilet || 0) * 200).toLocaleString()})\n`;
+            txt += `・トイレ利用        : ${coopData.toilet || 0} 回 (￥${((coopData.toilet || 0) * 100).toLocaleString()})\n`;
             txt += `管理協力金合計額: ￥${coopTotal.toLocaleString()}\n\n`;
 
             txt += `■ ３，料金箱集計 内訳\n`;
@@ -901,7 +901,7 @@
             const endStr = document.getElementById('period-end').value || "未設定";
             
             const salesTotal = calculateSalesTotal();
-            const coopTotal = (coopData.adult * 2000) + (coopData.child * 1000) + ((coopData.toilet || 0) * 200);
+            const coopTotal = (coopData.adult * 2000) + (coopData.child * 1000) + ((coopData.toilet || 0) * 100);
             // 【修正】カンマ対策のため画面からではなく保存データ（boxData.amount）を基準に読み込む
             const boxTotal = Number(boxData.amount) || 0;
             const grandTotal = salesTotal + coopTotal + boxTotal;
@@ -929,7 +929,7 @@
             csv += `【2.管理協力金・施設利用内訳】,区分,単価,人数/回数,金額,\n`;
             csv += `,一般（中学生以上）,2000,${coopData.adult},${coopData.adult * 2000},\n`;
             csv += `,小学生以下,1000,${coopData.child},${coopData.child * 1000},\n`;
-            csv += `,トイレ利用,200,${coopData.toilet || 0},${(coopData.toilet || 0) * 200},\n`;
+            csv += `,トイレ利用,100,${coopData.toilet || 0},${(coopData.toilet || 0) * 100},\n`;
             csv += `,,,,\n`;
             csv += `【3.料金箱内訳】,名簿記載人数,${boxData.people || 0},名,,\n`;
             csv += `,料金箱金額,${boxTotal},円,,\n`;
